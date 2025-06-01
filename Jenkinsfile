@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'maven' // Make sure this matches Jenkins Maven tool name
+        maven 'maven'       // Matches Jenkins tool name
         jdk 'jdk-17'
         dockerTool 'docker'
     }
@@ -12,11 +12,11 @@ pipeline {
     }
 
     stages {
-        // stage('Cleanup Workspace') {
-        //     steps {
-        //         cleanWs()
-        //     }
-        // }
+        stage('Cleanup Workspace') {
+            steps {
+                cleanWs()
+            }
+        }
 
         stage('Git Checkout') {
             steps {
@@ -79,6 +79,36 @@ pipeline {
                         sh "docker push ${docker_user}/${job}:v${BUILD_NUMBER}"
                         sh "docker push ${docker_user}/${job}:latest"
                     }
+                }
+            }
+        }
+
+        stage('Docker Image Cleanup') {
+            steps {
+                script { 
+                    echo "🧹 Cleaning up Docker images matching gchauhan1517 or java-maven"
+                    sh 'docker images --format "{{.Repository}}:{{.Tag}}" | grep -E "^(gchauhan1517|java-maven)" | xargs -r docker rmi -f'
+                }
+            }
+        }
+
+        // 🔥 CD Starts Here
+        stage('Deploy to Container') {
+            steps {
+                script {
+                    def job = env.JOB_NAME.toLowerCase()
+                    def containerName = "${job}-container"
+
+                    // Stop and remove previous container if running
+                    sh """
+                        docker stop ${containerName} || true
+                        docker rm ${containerName} || true
+                    """
+
+                    // Run new container on port 8080 inside, 8081 on host
+                    sh """
+                        docker run -d --name ${containerName} -p 8081:8080 ${DOCKER_USERNAME}/${job}:latest
+                    """
                 }
             }
         }
