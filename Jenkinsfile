@@ -12,11 +12,11 @@ pipeline {
     }
 
     stages {
-        stage('Cleanup Workspace') {
-            steps {
-                cleanWs()
-            }
-        }
+        // stage('Cleanup Workspace') {
+        //     steps {
+        //         cleanWs()
+        //     }
+        // }
 
         stage('Git Checkout') {
             steps {
