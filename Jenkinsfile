@@ -74,7 +74,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', passwordVariable: 'docker_pass', usernameVariable: 'docker_user')]) {
-                        sh "echo '${docker_pass}' | docker login -u '${docker_user}' --password-stdin"
+                        sh "docker login -u '${docker_user}' -p '${docker_pass}'"
                         def job = env.JOB_NAME.toLowerCase()
                         sh "docker push ${docker_user}/${job}:v${BUILD_NUMBER}"
                         sh "docker push ${docker_user}/${job}:latest"
